@@ -1,5 +1,114 @@
 
+from abc import ABC, abstractmethod
 
+# Abstract Base Class
+class Payment(ABC):
+    def __init__(self, user_name):
+        self.user_name = user_name
+        self.original_amount = 0
+        self.final_amount = 0
+
+    @abstractmethod
+    def pay(self, amount):
+        pass
+
+    def generate_receipt(self):
+        print("\n----- PAYMENT RECEIPT -----")
+        print(f"User Name       : {self.user_name}")
+        print(f"Original Amount : ₹{self.original_amount:.2f}")
+        print(f"Final Amount    : ₹{self.final_amount:.2f}")
+        print("----------------------------\n")
+
+
+# Credit Card Payment
+class CreditCardPayment(Payment):
+    def pay(self, amount):
+        self.original_amount = amount
+
+        gateway_fee = 0.02 * amount
+        gst = 0.18 * gateway_fee
+
+        self.final_amount = amount + gateway_fee + gst
+
+        print("\nProcessing Credit Card Payment...")
+        print(f"Gateway Fee (2%) : ₹{gateway_fee:.2f}")
+        print(f"GST on Fee (18%) : ₹{gst:.2f}")
+
+        self.generate_receipt()
+
+
+# UPI Payment
+class UPIPayment(Payment):
+    def pay(self, amount):
+        self.original_amount = amount
+
+        cashback = 50 if amount > 1000 else 0
+        self.final_amount = amount - cashback
+
+        print("\nProcessing UPI Payment...")
+        print(f"Cashback Applied : ₹{cashback:.2f}")
+
+        self.generate_receipt()
+
+
+# PayPal Payment
+class PayPalPayment(Payment):
+    def pay(self, amount):
+        self.original_amount = amount
+
+        international_fee = 0.03 * amount
+        conversion_fee = 20
+
+        self.final_amount = amount + international_fee + conversion_fee
+
+        print("\nProcessing PayPal Payment...")
+        print(f"International Fee (3%) : ₹{international_fee:.2f}")
+        print(f"Conversion Fee         : ₹{conversion_fee:.2f}")
+
+        self.generate_receipt()
+
+
+# Wallet Payment
+class WalletPayment(Payment):
+    def __init__(self, user_name, balance):
+        super().__init__(user_name)
+        self.balance = balance
+
+    def pay(self, amount):
+        self.original_amount = amount
+
+        print("\nProcessing Wallet Payment...")
+        print(f"Available Balance : ₹{self.balance:.2f}")
+
+        if amount > self.balance:
+            print("Transaction Failed: Insufficient Balance ❌")
+            self.final_amount = 0
+        else:
+            self.balance -= amount
+            self.final_amount = amount
+            print("Transaction Successful ✅")
+            print(f"Remaining Balance : ₹{self.balance:.2f}")
+
+        self.generate_receipt()
+
+
+# Polymorphism Function
+def process_payment(payment, amount):
+    payment.pay(amount)
+
+
+# Main Execution
+if __name__ == "__main__":
+    cc = CreditCardPayment("Khushi")
+    upi = UPIPayment("Khushi")
+    paypal = PayPalPayment("Khushi")
+    wallet = WalletPayment("Khushi", 1500)
+
+    process_payment(cc, 2000)
+    process_payment(upi, 1200)
+    process_payment(paypal, 500)
+    process_payment(wallet, 1000)
+    process_payment(wallet, 600)
 
 
 
