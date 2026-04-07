@@ -1,92 +1,112 @@
-Khushi- 202501100700085-ECE B
-Design a Smart Payment Processing System in Python using Object-Oriented Programming
-principles. The system should support multiple payment methods such as Credit Card, UPI,
-PayPal, and Digital Wallet, all following a common abstract interface. Each payment type must
-implement its own logic to calculate the final payable amount based on fees, taxes, cashback, or
-balance constraints. The system should demonstrate abstraction, inheritance, and runtime
-polymorphism by processing payments through a common function that works with different
-payment objects.
-#Khushi- 202501100700085 ECE -b
 from abc import ABC, abstractmethod
-# 1. Abstraction: Creating an abstract base class
+
+# Abstract Base Class
 class Payment(ABC):
-def __init__(self, user_name):
-self.user_name = user_name
-self.original_amount = 0
-self.final_amount = 0
-# Abstract method to be implemented by child classes
-@abstractmethod
-def pay(self, amount):
-pass
-# Concrete method shared by all child classes
-def generate_receipt(self):
-print(f"--- Receipt for {self.user_name} ---")
-print(f"Original Amount: ₹{self.original_amount:.2f}")
-print(f"Final Amount Paid: ₹{self.final_amount:.2f}")
-print("-" * 30 + "\n")
-# 2. Inheritance: Child classes inheriting from Payment base class
+    def __init__(self, user_name):
+        self.user_name = user_name
+        self.original_amount = 0
+        self.final_amount = 0
+
+    @abstractmethod
+    def pay(self, amount):
+        pass
+
+    def generate_receipt(self):
+        print("\n----- PAYMENT RECEIPT -----")
+        print(f"User Name       : {self.user_name}")
+        print(f"Original Amount : ₹{self.original_amount:.2f}")
+        print(f"Final Amount    : ₹{self.final_amount:.2f}")
+        print("----------------------------\n")
+
+
+# Credit Card Payment
 class CreditCardPayment(Payment):
-def pay(self, amount):
-self.original_amount = amount
-# 2% gateway fee
-gateway_fee = amount * 0.02
-# 18% GST on the gateway fee
-gst = gateway_fee * 0.18
-self.final_amount = amount + gateway_fee + gst
-print(f"Processing Credit Card transaction...")
-self.generate_receipt()
+    def pay(self, amount):
+        self.original_amount = amount
+
+        gateway_fee = 0.02 * amount
+        gst = 0.18 * gateway_fee
+
+        self.final_amount = amount + gateway_fee + gst
+
+        print("\nProcessing Credit Card Payment...")
+        print(f"Gateway Fee (2%) : ₹{gateway_fee:.2f}")
+        print(f"GST on Fee (18%) : ₹{gst:.2f}")
+
+        self.generate_receipt()
+
+
+# UPI Payment
 class UPIPayment(Payment):
-def pay(self, amount):
-self.original_amount = amount
-# Cashback of ₹50 if amount > 1000
-cashback = 50 if amount > 1000 else 0
-self.final_amount = amount - cashback
-print(f"Processing UPI transaction...")
-if cashback > 0:
-print(f"** Cashback of ₹{cashback} applied! **")
-self.generate_receipt()
+    def pay(self, amount):
+        self.original_amount = amount
+
+        cashback = 50 if amount > 1000 else 0
+        self.final_amount = amount - cashback
+
+        print("\nProcessing UPI Payment...")
+        print(f"Cashback Applied : ₹{cashback:.2f}")
+
+        self.generate_receipt()
+
+
+# PayPal Payment
 class PayPalPayment(Payment):
-def pay(self, amount):
-self.original_amount = amount
-# 3% international transaction fee
-intl_fee = amount * 0.03
-# Fixed currency conversion fee
-conversion_fee = 20
-self.final_amount = amount + intl_fee + conversion_fee
-print(f"Processing PayPal transaction...")
-self.generate_receipt()
+    def pay(self, amount):
+        self.original_amount = amount
+
+        international_fee = 0.03 * amount
+        conversion_fee = 20
+
+        self.final_amount = amount + international_fee + conversion_fee
+
+        print("\nProcessing PayPal Payment...")
+        print(f"International Fee (3%) : ₹{international_fee:.2f}")
+        print(f"Conversion Fee         : ₹{conversion_fee:.2f}")
+
+        self.generate_receipt()
+
+
+# Wallet Payment
 class WalletPayment(Payment):
-def __init__(self, user_name, initial_balance):
-super().__init__(user_name)
-self.balance = initial_balance
-def pay(self, amount):
-self.original_amount = amount
-print(f"Processing Wallet transaction...")
-# Check wallet balance
-if amount > self.balance:
-print(f"Transaction Failed: Insufficient balance. Attempted: ₹{amount}, Available:
-₹{self.balance}\n")
-else:
-self.balance -= amount
-self.final_amount = amount
-print(f"Transaction Successful. Remaining Wallet Balance: ₹{self.balance:.2f}")
-self.generate_receipt()
-# 3. Polymorphism: A single function that handles any Payment object
+    def __init__(self, user_name, balance):
+        super().__init__(user_name)
+        self.balance = balance
+
+    def pay(self, amount):
+        self.original_amount = amount
+
+        print("\nProcessing Wallet Payment...")
+        print(f"Available Balance : ₹{self.balance:.2f}")
+
+        if amount > self.balance:
+            print("Transaction Failed: Insufficient Balance ❌")
+            self.final_amount = 0
+        else:
+            self.balance -= amount
+            self.final_amount = amount
+            print("Transaction Successful ✅")
+            print(f"Remaining Balance : ₹{self.balance:.2f}")
+
+        self.generate_receipt()
+
+
+# Polymorphism Function
 def process_payment(payment, amount):
-# The appropriate pay() method is called based on the object type passed at runtime
-payment.pay(amount)
-# --- Demonstration ---
+    payment.pay(amount)
+
+
+# ---------------- MAIN PROGRAM ----------------
 if __name__ == "__main__":
-# Create objects of all payment classes
-cc_user = CreditCardPayment("Alice")
-upi_user = UPIPayment("Bob")
-paypal_user = PayPalPayment("Charlie")
-wallet_user = WalletPayment("David", 1000) # Initialize with ₹1000 balance
-print("=== Processing Payments ===\n")
-# Demonstrate runtime polymorphism
-process_payment(cc_user, 5000) # Credit Card: Adds 2% fee + 18% GST on the fee
-process_payment(upi_user, 1200) # UPI: Gets ₹50 cashback (amount > 1000)
-process_payment(upi_user, 800) # UPI: No cashback (amount < 1000)
-process_payment(paypal_user, 2000) # PayPal: Adds 3% fee + ₹20
-process_payment(wallet_user, 400) # Wallet: Succeeds, balance drops to 600
-process_payment(wallet_user, 800) # Wallet: Fails, insufficient balance
+    # Creating objects
+    cc = CreditCardPayment("Khushi")
+    upi = UPIPayment("Khushi")
+    paypal = PayPalPayment("Khushi")
+    wallet = WalletPayment("Khushi", 1500)
+
+    # Processing payments
+    process_payment(cc, 2000)
+    process_payment(upi, 1200)
+    process_payment(paypal, 500)
+    process_payment(wallet, 1000)
+    process_payment(wallet, 600)  # This should fail due to low balance
